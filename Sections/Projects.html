@@ -1,0 +1,16 @@
+<!-- Sections/Projects.html -->
+<h1>Projects</h1>
+
+<div class="controls" style="margin-bottom:14px; display:flex; gap:10px; flex-wrap:wrap;">
+  <input id="pr-search" type="search" placeholder="Search projects…" />
+  <input id="pr-year-start" type="number" placeholder="Start year" />
+  <input id="pr-year-end" type="number" placeholder="End year" />
+  <label style="display:flex; gap:6px; align-items:center;">
+    <input id="pr-sort" type="checkbox" checked />
+    <span>Sort: newest first</span>
+  </label>
+  <span id="projects-count" style="margin-left:auto; opacity:.8;"></span>
+</div>
+
+<!-- CHANGE: class="projects-grid" instead of timeline -->
+<ul id="projects-list" class="projects-grid"></ul>

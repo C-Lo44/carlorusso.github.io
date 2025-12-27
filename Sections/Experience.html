@@ -1,0 +1,25 @@
+<div class="experience">
+  <h1>Experience</h1>
+
+  <form class="controls" aria-label="Timeline controls" onsubmit="event.preventDefault()">
+    <label>
+      Search
+      <input id="tl-search" type="search" placeholder="role, company, tech…" aria-describedby="tl-count" />
+    </label>
+    <label>
+      From
+      <input id="tl-year-start" type="number" min="1980" max="2100" step="1" />
+    </label>
+    <label>
+      To
+      <input id="tl-year-end" type="number" min="1980" max="2100" step="1" />
+    </label>
+    <label class="toggle">
+      <input id="tl-sort" type="checkbox" />
+      <span>Newest first</span>
+    </label>
+  </form>
+
+  <ol id="timeline" class="timeline" aria-label="Career timeline"></ol>
+  <p id="tl-count" class="count" aria-live="polite"></p>
+</div>
