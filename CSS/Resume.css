@@ -1,0 +1,45 @@
+/* Resume tab styles */
+.resume-actions{
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+.resume-download{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:10px 16px;
+  border-radius: 12px;
+  border:1px solid rgba(255,255,255,.18);
+  color:#fff;
+  text-decoration:none;
+  font-weight:600;
+  background: rgba(124,92,255,.18);
+  transition: transform .16s ease, border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+}
+.resume-download:hover,
+.resume-download:focus-visible{
+  border-color:#7c5cff;
+  box-shadow: 0 0 0 3px rgba(124,92,255,.35);
+  transform: translateZ(0) scale(1.03);
+  background: rgba(124,92,255,.28);
+}
+.resume-download:active{ transform: translateZ(0) scale(0.98); }
+
+.resume-frame{
+  margin-top: 14px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius: 16px;
+  overflow:hidden;
+  height: 75vh;
+  min-height: 520px;
+  background: #0c111b;
+}
+.resume-frame object{
+  width:100%;
+  height:100%;
+  border:0;
+  display:block;
+}
+@media (max-width: 700px){
+  .resume-frame{ height: 65vh; min-height: 420px; }
+}
