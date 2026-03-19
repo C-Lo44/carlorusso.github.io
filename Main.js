@@ -1,89 +1,113 @@
-// Main.js
-const tabs  = Array.from(document.querySelectorAll('.tabs .tab'));
-const mount = document.getElementById('mount');
+const sections = Array.from(document.querySelectorAll(".portfolio-section"));
+const navLinks = Array.from(document.querySelectorAll("[data-section-link]"));
+const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+const header = document.querySelector(".site-header");
 
-async function loadTab(tabEl, pushHash = true) {
-  // --- ARIA state ---
-  tabs.forEach(t => {
-    const selected = t === tabEl;
-    t.setAttribute('aria-selected', String(selected));
-    t.tabIndex = selected ? 0 : -1;
+function setActiveNav(sectionId) {
+  navLinks.forEach((link) => {
+    const isActive = link.dataset.sectionLink === sectionId;
+    link.classList.toggle("is-active", isActive);
+    if (isActive) {
+      link.setAttribute("aria-current", "true");
+    } else {
+      link.removeAttribute("aria-current");
+    }
   });
-  mount.setAttribute('aria-labelledby', tabEl.id);
+}
 
-  // --- Fetch HTML fragment ---
-  const fragmentPath = tabEl.dataset.fragment; // e.g. "Sections/About.html"
-  if (fragmentPath) {
-    const html = await fetch(fragmentPath, { cache: 'no-store' }).then(r => {
-      if (!r.ok) throw new Error(`Failed to load ${fragmentPath} (${r.status})`);
-      return r.text();
-    });
-    mount.innerHTML = html;
-  } else {
-    mount.innerHTML = '';
+async function hydrateSection(section) {
+  const fragmentPath = section.dataset.fragment;
+  const modulePath = section.dataset.module;
+  const mount = section.querySelector("[data-section-content]");
+  if (!fragmentPath || !mount) return;
+
+  const response = await fetch(fragmentPath, { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error(`Failed to load ${fragmentPath} (${response.status})`);
   }
 
-  // --- Import per-tab JS module (optional) ---
-  const modulePath = tabEl.dataset.module; // e.g. "./Sections/About.js"
+  mount.innerHTML = await response.text();
+
   if (modulePath) {
     try {
       const mod = await import(modulePath);
-      if (typeof mod.init === 'function') mod.init(mount);
-    } catch (e) {
-      console.error('Module load error:', e);
+      if (typeof mod.init === "function") {
+        mod.init(mount);
+      }
+    } catch (error) {
+      console.error("Module load error:", error);
     }
   }
+}
 
-  // --- Update hash (no scroll) ---
-  if (pushHash) {
-    const simple = tabEl.id.replace('tab-', '');
-    history.replaceState(null, '', `#${simple}`);
+function scrollToSection(sectionId, updateHash = true) {
+  const section = document.getElementById(sectionId);
+  if (!section) return;
+
+  const headerHeight = header?.offsetHeight ?? 0;
+  const sectionTop = window.scrollY + section.getBoundingClientRect().top;
+  const targetTop = Math.max(0, sectionTop - headerHeight - 12);
+
+  window.scrollTo({
+    top: targetTop,
+    behavior: prefersReducedMotion.matches ? "auto" : "smooth"
+  });
+
+  setActiveNav(sectionId);
+
+  if (updateHash) {
+    history.replaceState(null, "", `#${sectionId}`);
   }
+}
 
-  // --- Keep focus (for a11y) WITHOUT scrolling the page ---
-  mount.setAttribute('tabindex', '-1');                 // ensure focusable region
-  mount.focus({ preventScroll: true });                 // <-- key line
-
-  // --- Belt & suspenders: pin viewport at the top after render ---
-  requestAnimationFrame(() => {
-    window.scrollTo({ top: 0, behavior: 'auto' });
-    // Or, if you prefer aligning under the sticky header:
-    // document.querySelector('.site-header')?.scrollIntoView({ block: 'start', behavior: 'auto' });
+function setupNav() {
+  navLinks.forEach((link) => {
+    link.addEventListener("click", (event) => {
+      const sectionId = link.dataset.sectionLink;
+      if (!sectionId) return;
+      event.preventDefault();
+      scrollToSection(sectionId, true);
+    });
   });
 }
 
-function showById(id, pushHash = false) {
-  const t = tabs.find(x => x.id === id);
-  if (t) return loadTab(t, pushHash);
+function setupObserver() {
+  const observer = new IntersectionObserver(
+    (entries) => {
+      const visible = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+
+      if (visible.length > 0) {
+        const sectionId = visible[0].target.id;
+        setActiveNav(sectionId);
+        history.replaceState(null, "", `#${sectionId}`);
+      }
+    },
+    {
+      rootMargin: "-25% 0px -45% 0px",
+      threshold: [0.2, 0.35, 0.55]
+    }
+  );
+
+  sections.forEach((section) => observer.observe(section));
 }
 
-// --- Wire up tabs ---
-tabs.forEach((tab, idx) => {
-  tab.addEventListener('click', (e) => {
-    e.preventDefault();                 // just in case
-    loadTab(tab, true);
-  });
+async function init() {
+  await Promise.all(sections.map(hydrateSection));
+  setupNav();
+  setupObserver();
 
-  tab.addEventListener('keydown', (e) => {
-    const last = tabs.length - 1;
-    if (e.key === 'ArrowRight') { e.preventDefault(); tabs[(idx + 1) % tabs.length].click(); }
-    if (e.key === 'ArrowLeft')  { e.preventDefault(); tabs[(idx - 1 + tabs.length) % tabs.length].click(); }
-    if (e.key === 'Home')       { e.preventDefault(); tabs[0].click(); }
-    if (e.key === 'End')        { e.preventDefault(); tabs[last].click(); }
-  });
-});
+  const hash = (window.location.hash || "").slice(1);
+  const initialSection = sections.find((section) => section.id === hash)?.id || sections[0]?.id;
+  if (initialSection) {
+    setActiveNav(initialSection);
+    if (hash) {
+      requestAnimationFrame(() => scrollToSection(initialSection, false));
+    }
+  }
+}
 
-// --- Initial load (hash-aware) — load ONCE ---
-(function init() {
-  const hash = (location.hash || '').slice(1);          // e.g. "projects"
-  const startId = hash ? `tab-${hash}` : 'tab-about';
-  const startTab = tabs.find(t => t.id === startId) || document.getElementById('tab-about');
-  if (startTab) loadTab(startTab, Boolean(hash));       // load once; push hash only if there was a hash
-})();
-
-// --- Respond to manual hash changes (e.g. Portfolio -> Resume link) ---
-window.addEventListener('hashchange', () => {
-  const hash = (location.hash || '').slice(1);
-  const targetId = hash ? `tab-${hash}` : 'tab-about';
-  showById(targetId, false);
+init().catch((error) => {
+  console.error("Portfolio initialization error:", error);
 });

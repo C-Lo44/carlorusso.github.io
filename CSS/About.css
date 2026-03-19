@@ -1,6 +1,35 @@
-/* About tab styles */
-#panel-about { border: 2px solid #40e0d0; box-shadow: 0 0 8px rgba(64,224,208,0.6); }
-.quote { margin: 16px 0; padding-left: 14px; border-left: 3px solid #40e0d0; font-style: italic; }
+/* About section styles */
+#panel-about { border: 1px solid rgba(69, 208, 195, 0.5); box-shadow: 0 20px 48px rgba(0,0,0,.22); }
+.about-role-line{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  margin-left:12px;
+  color:#40e0d0;
+  font-size:.65em;
+  font-weight:600;
+  letter-spacing:.02em;
+  white-space:nowrap;
+}
+.about-role-prefix{
+  color:rgba(69, 208, 195, 0.7);
+}
+.about-role-typing{
+  position:relative;
+  min-width:19ch;
+}
+.about-role-typing::after{
+  content:"";
+  position:absolute;
+  right:-6px;
+  top:50%;
+  width:2px;
+  height:1.05em;
+  background:#40e0d0;
+  transform:translateY(-50%);
+  animation: about-caret .9s steps(1) infinite;
+}
+.quote { margin: 20px 0 4px; padding-left: 16px; border-left: 3px solid #40e0d0; font-style: italic; }
 .quote blockquote { margin:0; font-size:1.05rem; line-height:1.5; }
 .quote figcaption { margin-top:6px; font-style:normal; color:#9aa3b2; font-size:.9rem; }
 
@@ -46,9 +75,39 @@
   0%,100% { transform: translateY(0); }
   50%     { transform: translateY(var(--bob-amp, -10px)); }
 }
+@keyframes about-caret{
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
 /* Per-card motion */
 .about-gallery .about-card.floaty:nth-child(1){ --bob-amp:-20px; --dur:7.5s;  animation-delay:.0s; }
 .about-gallery .about-card.floaty:nth-child(2){ --bob-amp: 22px; --dur:8.2s;  animation-delay:.5s; }
 .about-gallery .about-card.floaty:nth-child(3){ --bob-amp:-18px; --dur:9s;    animation-delay:.9s; }
 .about-gallery .about-card.floaty:nth-child(4){ --bob-amp: 24px; --dur:7.2s;  animation-delay:.2s; }
 .about-gallery .about-card.floaty:nth-child(5){ --bob-amp:-26px; --dur:8.8s;  animation-delay:1.2s; }
+
+@media (max-width: 900px){
+  .about-role-line{
+    display:flex;
+    margin-left:0;
+    margin-top:10px;
+  }
+  .about-gallery{
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 640px){
+  .about-gallery{
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 420px){
+  .about-role-typing{
+    min-width:14ch;
+  }
+  .about-gallery{
+    grid-template-columns: 1fr;
+  }
+}
